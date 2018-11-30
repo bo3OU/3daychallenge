@@ -12,6 +12,7 @@
     "bcryptjs": "^2.4.3",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.4.0",
-    "justified": "^1.0.1"
+    "justified": "^1.0.1",
+    "word-count": "^0.2.2"
   }
 }
