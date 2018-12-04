@@ -6,7 +6,7 @@ var justify = require('justified');
     db = require('./database')
     mongoose = require('mongoose')
     config = require('./config')
-    // used to sign, decode, and verify tokens
+    // used to create, sign, and verify tokens
     jwt = require('jsonwebtoken'); 
     bcrypt = require('bcryptjs');
 
@@ -40,6 +40,10 @@ express()
 
 	next();
 })
+.get('/', (req, res) => {
+    res.end('hello there \n General kenobi');
+})
+
 // initial authentification
 .use(bodyParser.urlencoded({ extended: true })).post('/api/token', (req, res) => {
     let email = req.body.email
