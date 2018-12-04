@@ -5,7 +5,7 @@ var justify = require('justified');
     verifyToken = require('./verifyToken');
     db = require('./database')
     mongoose = require('mongoose')
-
+    config = require('./config')
     // used to sign, decode, and verify tokens
     jwt = require('jsonwebtoken'); 
     bcrypt = require('bcryptjs');
@@ -19,31 +19,41 @@ userModel = new mongoose.Schema({
 
 User = mongoose.model('User', userModel);
 console.log('starting connection to databasse, please hold ...');
-mongoose.connect('mongodb://bo3ou:Alibagho2@ds149855.mlab.com:49855/userquota',{ useNewUrlParser: true }, function (error) {
+mongoose.connect(`mongodb://${config.user}:${config.password}@ds149855.mlab.com:49855/userquota`,{ useNewUrlParser: true }, function (error) {
     if (error) console.error(error);
     else console.log('Connected to the database');
 });
-mongoose.Promise = global.Promise;
 
-function modifyUser(){
-
-}
 //create app
 express()
-// authentification initiale
+// Allow cors
+.use(function(req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept"
+	);
+	res.header(
+		"Access-Control-Allow-Methods",
+		"POST"
+	);
+
+	next();
+})
+// initial authentification
 .use(bodyParser.urlencoded({ extended: true })).post('/api/token', (req, res) => {
     let email = req.body.email
         currentTime = Math.floor(Date.now() / 1000)
     // sign the user with email and prepare the token
     let token = jwt.sign({
         id: email
-    }, 'supersecret', {
+    }, config.secretPassword , {
         expiresIn: 86400 // 24 hours
     })
     // find the authentificated user by email, if it doesn't exist, create one with fresh values
     User.findOne({userEmail : email}, function (err, user) {
         if(!user) {
-            var newUser = new User({userEmail : email, words : 80000, start : currentTime})
+            var newUser = new User({userEmail : email, words : config.maxWords, start : currentTime})
             newUser.save(function (err, user) {
                 if (err) {
                     // an error occured while creating user
@@ -82,27 +92,28 @@ express()
         email = decoded.payload.id
         currentTime = Math.floor(Date.now() / 1000)
         text = req.body
-    console.log({
-        'decode' : decoded,
-        'email' : email,
-        'currentTime' : currentTime,
-        'text' : text
-    })
     User.findOne({userEmail : email}, function (err, user) {
+        //has correct token means database should have user !
         if(err || !user) {
-            res.status(500).end('our mistake')
+            res.status(500).end('Our mistake (communism pun not intended)')
         } else {
+            // more than one day, should reset counter and update date!
             if(user.start + 60*60*24 <= currentTime) {
                 user.start = Math.round((currentTime-user.start) /(60*60*24)) * 60*60*24 + user.start
-                user.words = 80000
+                user.words = config.maxWords
             }
-            if(user.words - wordCount(text) < 0) { //higher than 80000
-                res.status(402).end('if you like put some money on it')
+            // see if the words left for user are sufficient
+            if(user.words - wordCount(text) < 0) { 
+                res.status(402).end('How about you buy us some coffee first?')
             } else {
+                console.log('count :' + wordCount(text))
                 user.words = user.words - wordCount(text)
-                User.findOneAndUpdate(user._id,{words : user.words, start : user.start}, err => {
-                    if(err) console.log(err)
-                    res.end(justify(text))
+                console.log('whats left : ' +user.words)
+                console.log(user._id)
+                User.findOneAndUpdate({_id : user._id},{words : user.words, start : user.start},{new: true}, err => {
+                    if(err) res.status('500').end("I think a rat ate internet cables :x")
+                    // actually justifying the text, congrats boiii
+                    res.end(justify(text,{width : config.length}))
                 })
             }            
         } 
