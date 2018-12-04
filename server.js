@@ -9,7 +9,7 @@ var justify = require('justified');
     // used to create, sign, and verify tokens
     jwt = require('jsonwebtoken'); 
     bcrypt = require('bcryptjs');
-
+const port=process.env.PORT || 3000
 userModel = new mongoose.Schema({
     id          : String, 
     userEmail       : String,
@@ -123,4 +123,4 @@ express()
         } 
     })
 })
-.listen(3000)
+.listen(port)
