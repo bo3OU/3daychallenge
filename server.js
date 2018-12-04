@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 var justify = require('justified');
     wordCount = require('word-count');
     verifyToken = require('./verifyToken');
-    db = require('./database')
     mongoose = require('mongoose')
     config = require('./config')
     // used to create, sign, and verify tokens
