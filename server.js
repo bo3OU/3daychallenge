@@ -41,7 +41,7 @@ express()
 	next();
 })
 .get('/', (req, res) => {
-    res.end('hello there \n General kenobi');
+    res.end('hello there, wassap TicTacTrip people ?');
 })
 
 // initial authentification
@@ -110,10 +110,7 @@ express()
             if(user.words - wordCount(text) < 0) { 
                 res.status(402).end('How about you buy us some coffee first?')
             } else {
-                console.log('count :' + wordCount(text))
                 user.words = user.words - wordCount(text)
-                console.log('whats left : ' +user.words)
-                console.log(user._id)
                 User.findOneAndUpdate({_id : user._id},{words : user.words, start : user.start},{new: true}, err => {
                     if(err) res.status('500').end("I think a rat ate internet cables :x")
                     // actually justifying the text, congrats boiii
